@@ -1,0 +1,215 @@
+---
+title: "PAF514 Final Code Through"
+author: "Kate Bracken"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: readable
+    df_print: paged
+    highlight: tango
+    toc: yes
+    toc_float: yes
+---
+
+```{r include = FALSE}
+
+# SET GLOBAL KNITR OPTIONS
+
+knitr::opts_chunk$set(echo = TRUE, 
+                      message = FALSE, 
+                      warning = FALSE, 
+                      fig.width = 10, 
+                      fig.height = 8)
+
+
+
+# LOAD PACKAGES
+
+library(pander)
+library(dplyr)
+
+```
+
+
+<br>
+<br>
+
+
+# Introduction
+
+This code through explores String Processing in R. 
+
+<br>
+
+---
+
+## Content Overview
+
+Specifically, I'll explain and demonstrate how to analyze text using the **stringr** library suite of tools, including functions to format the case of your text, find a word or phrase, replace a word or phrase, and extract part of a string, and later, different operators that will help you isolate different parts of the string.
+
+<br>
+
+## Why You Should Care
+
+Most of the time in data analysis, we're working with numbers. But every once in a while, our data are words or phrases. These can be tricky to work with because, well, just that: they're English words, and computers don't speak English. The computer doesn't recognize these words and phrases in your data as having meaning, it just recognizes them as a *string* of characters. (Get it? That's why the library we're using is called *stringr*?) In this code through, you'll learn some tips and tricks for working with these strings, so you can successfully and meaningfully analyze your word data. 
+<br>
+The dataset I'm using is one called **chickwts** that is built into R. This dataset shows the weights of chicken based on what feed they are given. It's kind of a funny dataset to be using for this code through, but we'll use **stringr** to analyze the different types of feeds, since, you guessed it, the computer doesn't know what the string of characters "linseed" means. 
+
+<br>
+
+## Basics
+Before we start in earnest, I found it helpful when I was first learning about strings to have some basic definitions down. For starters, a **character** is a letter, number, or symbol. A **string** is any piece of data made up of characters. A **word** is a string surrounded by spaces. Spaces are how R can differentiate between the different strings, or words. 
+
+<br>
+<br>
+
+---
+
+# Let's Get Into It! 
+
+---
+
+Here is the nitty gritty of how to process strings in R. 
+
+First, you'll want to set your dataset.
+
+```{r}
+data <- chickwts
+
+head(data) %>% pander()
+```
+
+Next, you'll want to make sure you have the necessary library installed and loaded:
+
+```{r}
+#Run this if you don't already have stringr installed:
+#install.packages("stringr")
+
+library(stringr)
+```
+
+<br>
+
+## Format Case
+
+<br>
+
+Let's start with learning to manipulate the case of our strings to clean it up. Imagine you had a dataset with location names, but only some of them were capitalized. Manipulating the case of the strings would standardize it. Using our data set, we'll manipulate the case of the different types of feed that is given to the chickens:
+
+```{r}
+#Right now, all the feeds are lower case, so let's make them upper case using toupper():
+toupper(data$feed)
+```
+
+```{r}
+#Now let's take them back down to lower case using tolower():
+tolower(data$feed)
+```
+
+<br>
+
+## Find a word or phrase
+
+<br>
+
+We can use the **grep()** function to tell the computer what string to search for, and then it will tell us where in the dataset that word is found. For example, we can search for feeds that have the word "bean" in them, and the computer will return which chickens were fed with a feed with "beans" in the name:
+```{r}
+grep(pattern = "bean", data$feed)
+```
+In this case, chickens #1-10 and #23-26 were fed with something with "bean" in the name. 
+
+<br>
+
+## Replace a word or phrase
+
+<br>
+
+We can use the **gsub()** function to find and replace parts of our strings. In this way, we can mess around and replace the word "flower" with "blossom", so that all the sunflower feed will now say sunblossom. 
+```{r}
+gsub(pattern = "flower", replacement = "blossom", data$feed)
+```
+
+
+<br>
+
+## Extract part of a string
+
+<br>
+
+We can use the **substr()** function to pull out a unique part of the string, by showing the stopping and starting characters I want to know. For example, we can look at what the first four letters of the feeds are, giving us an abbreviation to use instead of using the full name of the feed:
+
+```{r}
+substr(data$feed, 1, 4)
+```
+
+<br>
+
+---
+
+# Operators
+
+<br>
+
+Operators allow us to tell the computer where we want it to look, along with what for. 
+
+<br>
+
+## Start and end of a string
+
+<br>
+
+The **^** operator can help us look for something at the start of a string, like for this example, I want to look for all the feeds that start with the letter L, but if I just search for L, it will pull up the cases where chickens were fed linseed, sunflower, and meatmeal, since they all have L in the word.
+```{r}
+grep("l", data$feed)
+```
+
+I'll use the **^** operator to search for cases using feed that only start with the letter L, in this case, we know it will be all the cases that use linseed:
+```{r}
+grep("^l", data$feed)
+```
+And I can use the **$** operator to search for cases that end with the letter L, in this case, we know it will be all the cases that use meatmeal:
+```{r}
+grep("l$", data$feed)
+```
+
+
+<br>
+
+## "OR" statemenets
+
+<br>
+
+We can use the **|** operator to tell the computer to look for two different things at the same time. If I wanted to look for cases in which chickens were fed with beans or seeds, I would query like this:
+```{r}
+grep("bean|seed", data$feed)
+```
+
+
+<br>
+
+## Except
+
+<br>
+
+This next example isn't so much an operator, as a whole new function, but with a twist. We can use the **grepl()** function, but be sure to add a **!** in front of it, to tell the computer to give us everything **except** what we search for. If I wanted to know the cases in which chickens were fed anything but beans, I would do this:
+```{r}
+!grepl("bean", data$feed)
+```
+Any case that says TRUE match my search of chickens not being fed with beans, and any case that says FALSE is where the chickens were fed with beans, in this case, chickens #1-10 were fed with horsebean and #23-36 were fed with soybean. 
+
+<br> 
+<br>
+
+---
+
+<center>
+![FigName](C:/Users/kathr/Downloads/chicken_eating.jpg)
+</center>
+
+# Works Cited
+
+This code through is based mostly on the ASU MS in Program Evaluation & Data Analytics program online textbook.
+
+<br>
+
+* Arizona State University (n.d.). [PAF 514 Foundations of  Data Science II: Data Wrangling](https://github.com/Watts-College/paf-514-template)
